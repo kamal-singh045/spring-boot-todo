@@ -9,6 +9,7 @@ import springboot_todo.todo.repository.TodoRepository;
 import springboot_todo.todo.repository.UserRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TodoService {
@@ -24,13 +25,12 @@ public class TodoService {
         this.userRepository = userRepository;
     }
 
-    public TodoEntity createTodo(TodoEntity data, Long userId) {
+    public TodoEntity createTodo(TodoEntity data, UUID userId) {
         UserEntity user = this.userRepository.findById(userId).orElseThrow(() -> new CustomException(
                 "User not found",
                 HttpStatus.NOT_FOUND
                 ));
         data.setUser(user);
-        System.out.print(data);
         return todoRepository.save(data);
     }
 
@@ -38,7 +38,7 @@ public class TodoService {
         return todoRepository.findAll();
     }
 
-    public TodoEntity getTodoById(Long id) {
+    public TodoEntity getTodoById(UUID id) {
         return todoRepository.findById(id).orElseThrow(() -> new CustomException(
                 "Todo with id: %d is not found!!!".formatted(id),
                 HttpStatus.NOT_FOUND

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import springboot_todo.todo.dto.ApiResponse;
 import springboot_todo.todo.dto.LoginDto;
 import springboot_todo.todo.entity.UserEntity;
+import springboot_todo.todo.enums.RoleEnum;
 import springboot_todo.todo.service.UserService;
 
 @RestController
@@ -23,6 +24,13 @@ public class UserController {
 
     @PostMapping("/register")
     private ResponseEntity<ApiResponse<?>> register(@RequestBody UserEntity userData) {
+        String token = this.userService.register(userData);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Registration Successful", token));
+    }
+
+    @PostMapping("/register-admin")
+    private ResponseEntity<ApiResponse<?>> registerAdmin(@RequestBody UserEntity userData) {
+        userData.setRole(RoleEnum.ADMIN);
         String token = this.userService.register(userData);
         return ResponseEntity.ok(new ApiResponse<>(true, "Registration Successful", token));
     }

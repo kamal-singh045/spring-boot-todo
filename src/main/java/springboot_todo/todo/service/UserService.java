@@ -30,13 +30,10 @@ public class UserService {
     }
 
     public String register(UserEntity userDetails) {
-        UserEntity updatedUser = new UserEntity();
-        updatedUser.setEmail(userDetails.getEmail());
-        updatedUser.setName(userDetails.getName());
         String encodedPassword = passwordEncoder.encode(userDetails.getPassword());
-        updatedUser.setPassword(encodedPassword);
-        UserEntity createdUser = this.userRepository.save(updatedUser);
-        return jwtUtils.generateJwt(createdUser.getEmail());
+        userDetails.setPassword(encodedPassword);
+        UserEntity createdUser = this.userRepository.save(userDetails);
+        return jwtUtils.generateJwt(createdUser.getId(), createdUser.getEmail());
     }
 
     public String login(LoginDto loginData) {
@@ -54,6 +51,6 @@ public class UserService {
                     HttpStatus.BAD_REQUEST
             );
         }
-        return jwtUtils.generateJwt(user.getEmail());
+        return jwtUtils.generateJwt(user.getId(), user.getEmail());
     }
 }

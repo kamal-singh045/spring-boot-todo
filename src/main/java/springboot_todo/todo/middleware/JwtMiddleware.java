@@ -20,6 +20,8 @@ import springboot_todo.todo.repository.UserRepository;
 import springboot_todo.todo.utils.JwtUtils;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 @AllArgsConstructor
@@ -41,16 +43,17 @@ public class JwtMiddleware extends OncePerRequestFilter {
         }
         final String jwt = authHeader.substring(7);
         try {
-            final String userEmail = jwtUtils.decodeJwt(jwt);
-
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserEntity user = this.userRepository.getUserByEmail(userEmail);
+            final Map<String, String> userData = jwtUtils.decodeJwt(jwt);
+            final String userId = userData.get("userId");
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserEntity user = this.userRepository.findById(UUID.fromString(userId)).orElse(null);
                 if (user == null) {
                     throw new CustomException("Invalid User", HttpStatus.BAD_REQUEST);
                 }
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         user, null, null
                 );
+                // System.out.println(user.getRole());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

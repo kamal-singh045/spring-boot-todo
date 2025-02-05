@@ -7,8 +7,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import springboot_todo.todo.enums.RoleEnum;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
@@ -18,16 +20,24 @@ import java.util.List;
 @Table(name = "users")
 public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @JsonProperty
-    private Long id;
+    private UUID id;
 
+    @Column(nullable = false)
     @JsonProperty
     private String name;
 
+    @Column(nullable = false, unique = true)
     @JsonProperty
     private String email;
 
+    @Column(nullable = false)
+    @JsonProperty
+    @Enumerated(EnumType.STRING)
+    private RoleEnum role = RoleEnum.USER;
+
+    @Column(nullable = false)
     @JsonProperty
     private String password;
 

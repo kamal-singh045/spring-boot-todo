@@ -2,6 +2,7 @@ package springboot_todo.todo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,9 +13,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.AllArgsConstructor;
 import springboot_todo.todo.middleware.JwtMiddleware;
+import springboot_todo.todo.security.aspect.RoleInterceptor;
+
 
 @AllArgsConstructor
 @Configuration
+@EnableAspectJAutoProxy
 public class SecurityConfig {
 
     private final JwtMiddleware jwtMiddleware;
@@ -38,5 +42,10 @@ public class SecurityConfig {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
+    RoleInterceptor roleInterceptor() {
+        return new RoleInterceptor();
     }
 }

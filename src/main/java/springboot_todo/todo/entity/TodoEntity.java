@@ -1,5 +1,7 @@
 package springboot_todo.todo.entity;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -7,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import springboot_todo.todo.enums.TodoStatusEnum;
 
 @Entity
 @Getter
@@ -16,9 +19,9 @@ import lombok.Setter;
 @Table(name = "todos")
 public class TodoEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @JsonProperty("id")
-    private Long id;
+    private UUID id;
 
     @Column(nullable = false)
     @JsonProperty("title")
@@ -28,9 +31,10 @@ public class TodoEntity {
     @JsonProperty("description")
     private String description;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    @JsonProperty("isCompleted")
-    private boolean isCompleted;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @JsonProperty("status")
+    private TodoStatusEnum status = TodoStatusEnum.TODO;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
