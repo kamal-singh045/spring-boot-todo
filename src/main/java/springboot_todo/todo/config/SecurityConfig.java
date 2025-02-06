@@ -13,7 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import lombok.AllArgsConstructor;
 import springboot_todo.todo.middleware.JwtMiddleware;
-import springboot_todo.todo.security.aspect.RoleInterceptor;
 
 
 @AllArgsConstructor
@@ -31,9 +30,11 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/users/*")
-                        .permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/users/update-status").authenticated()
+                        .requestMatchers("/api/users/*").permitAll()
                         .anyRequest().authenticated()
+                        
                 ).addFilterBefore(jwtMiddleware, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -42,10 +43,5 @@ public class SecurityConfig {
     @Bean
     AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-    }
-
-    @Bean
-    RoleInterceptor roleInterceptor() {
-        return new RoleInterceptor();
     }
 }

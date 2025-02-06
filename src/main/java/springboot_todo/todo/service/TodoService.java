@@ -2,6 +2,7 @@ package springboot_todo.todo.service;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 import springboot_todo.todo.entity.TodoEntity;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.exception.CustomException;
@@ -19,8 +20,7 @@ public class TodoService {
 
     public TodoService(
             TodoRepository todoRepository,
-            UserRepository userRepository
-    ) {
+            UserRepository userRepository) {
         this.todoRepository = todoRepository;
         this.userRepository = userRepository;
     }
@@ -28,8 +28,7 @@ public class TodoService {
     public TodoEntity createTodo(TodoEntity data, UUID userId) {
         UserEntity user = this.userRepository.findById(userId).orElseThrow(() -> new CustomException(
                 "User not found",
-                HttpStatus.NOT_FOUND
-                ));
+                HttpStatus.NOT_FOUND));
         data.setUser(user);
         return todoRepository.save(data);
     }
@@ -40,8 +39,22 @@ public class TodoService {
 
     public TodoEntity getTodoById(UUID id) {
         return todoRepository.findById(id).orElseThrow(() -> new CustomException(
-                "Todo with id: %d is not found!!!".formatted(id),
-                HttpStatus.NOT_FOUND
-        ));
+                "Todo with id: %s is not found!!!".formatted(String.valueOf(id)),
+                HttpStatus.NOT_FOUND));
+    }
+
+    public TodoEntity updateTodo(UUID id, TodoEntity data) {
+        if (id == null) {
+            throw new CustomException(
+                    "Todo id is required to update the todo.",
+                    HttpStatus.BAD_REQUEST);
+        }
+        TodoEntity todo = todoRepository.findById(id).orElseThrow(() -> new CustomException(
+                "Todo with id: %s is not found!!!".formatted(String.valueOf(id)),
+                HttpStatus.NOT_FOUND));
+        todo.setTitle(data.getTitle());
+        todo.setDescription(data.getDescription());
+        todo.setStatus(data.getStatus());
+        return todoRepository.save(todo);
     }
 }

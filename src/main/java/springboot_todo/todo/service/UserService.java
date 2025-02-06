@@ -1,10 +1,13 @@
 package springboot_todo.todo.service;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import springboot_todo.todo.dto.LoginDto;
 import springboot_todo.todo.entity.UserEntity;
+import springboot_todo.todo.enums.UserStatusEnum;
 import springboot_todo.todo.exception.CustomException;
 import springboot_todo.todo.repository.UserRepository;
 import springboot_todo.todo.utils.JwtUtils;
@@ -40,17 +43,39 @@ public class UserService {
         UserEntity user = userRepository.getUserByEmail(loginData.getEmail());
         if(user == null) {
             throw new CustomException(
-                    "Email not found",
-                    HttpStatus.NOT_FOUND
+                "Email not found",
+                HttpStatus.NOT_FOUND
+            );
+        } else if(user.getStatus() == UserStatusEnum.BLOCKED) {
+            throw new CustomException(
+                "Your account is blocked. Please contact to admin",
+                HttpStatus.BAD_REQUEST
+            );
+        } else if(user.getStatus() == UserStatusEnum.PENDING) {
+            throw new CustomException(
+                "Your account is in pending. Please wait for admin approval",
+                HttpStatus.BAD_REQUEST
             );
         }
         boolean isPasswordMatched = passwordEncoder.matches(loginData.getPassword(), user.getPassword());
         if(!isPasswordMatched) {
             throw new CustomException(
-                    "Incorrect password",
-                    HttpStatus.BAD_REQUEST
+                "Incorrect password",
+                HttpStatus.BAD_REQUEST
             );
         }
         return jwtUtils.generateJwt(user.getId(), user.getEmail());
+    }
+
+    public String updateUserStatus(UUID userId, UserStatusEnum status) {
+        UserEntity user = this.userRepository.findById(userId).orElse(null);
+        if(user == null) {
+            throw new CustomException(
+                "User not found",
+                HttpStatus.NOT_FOUND);
+        }
+        user.setStatus(status);
+        this.userRepository.save(user);
+        return "User status updated to "+status;
     }
 }

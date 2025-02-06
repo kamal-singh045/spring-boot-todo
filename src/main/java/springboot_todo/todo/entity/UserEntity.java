@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import springboot_todo.todo.enums.RoleEnum;
+import springboot_todo.todo.enums.UserStatusEnum;
 
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,11 @@ public class UserEntity {
     @Column(nullable = false)
     @JsonProperty
     private String password;
+
+    @Column(nullable = false)
+    @JsonProperty
+    @Enumerated(EnumType.STRING)
+    private UserStatusEnum status = UserStatusEnum.PENDING;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true) // we have a user property in TodoEntity class
     @JsonIgnore

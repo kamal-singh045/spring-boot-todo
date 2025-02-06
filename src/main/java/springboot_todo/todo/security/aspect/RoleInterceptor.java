@@ -21,20 +21,19 @@ import springboot_todo.todo.security.AllowedRoles;
 @RequiredArgsConstructor
 public class RoleInterceptor {
 
-	@Around("@annotation(AllowedRoles)")
+	@Around("@annotation(springboot_todo.todo.security.AllowedRoles)")
 	public Object checkRole(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 		MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
-		System.out.println(signature);
 		AllowedRoles allowedRoles = signature.getMethod().getAnnotation(AllowedRoles.class);
 
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(principal == null || !(principal instanceof UserEntity user)) {
+		if (principal == null || !(principal instanceof UserEntity user)) {
 			throw new CustomException("Invalid User", HttpStatus.UNAUTHORIZED);
 		}
 		RoleEnum userRole = user.getRole();
 
-		if(!Arrays.asList(allowedRoles.value()).contains(userRole)) {
-			throw new CustomException("Access Denied", HttpStatus.BAD_REQUEST);
+		if (!Arrays.asList(allowedRoles.value()).contains(userRole)) {
+			throw new CustomException("Access Denied", HttpStatus.FORBIDDEN);
 		}
 
 		return proceedingJoinPoint.proceed();

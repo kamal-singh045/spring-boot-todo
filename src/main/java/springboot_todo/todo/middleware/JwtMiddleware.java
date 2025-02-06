@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import springboot_todo.todo.repository.UserRepository;
 import springboot_todo.todo.utils.JwtUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,30 +36,33 @@ public class JwtMiddleware extends OncePerRequestFilter {
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
-        if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        final String jwt = authHeader.substring(7);
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
+            final String authHeader = request.getHeader("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                throw new CustomException("Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
+            }
+            final String jwt = authHeader.substring(7);
+
             final Map<String, String> userData = jwtUtils.decodeJwt(jwt);
             final String userId = userData.get("userId");
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (userId == null) {
+                throw new CustomException("Invalid JWT token: user ID is missing", HttpStatus.UNAUTHORIZED);
+            } else if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserEntity user = this.userRepository.findById(UUID.fromString(userId)).orElse(null);
                 if (user == null) {
-                    throw new CustomException("Invalid User", HttpStatus.BAD_REQUEST);
+                    throw new CustomException("User not found", HttpStatus.UNAUTHORIZED);
                 }
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        user, null, null
-                );
-                // System.out.println(user.getRole());
+                        user,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
             filterChain.doFilter(request, response);
+        } catch (CustomException e) {
+            response.sendError(e.getStatus().value(), e.getMessage());
         } catch (Exception e) {
             this.handlerExceptionResolver.resolveException(request, response, null, e);
         }
