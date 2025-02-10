@@ -1,15 +1,14 @@
 package springboot_todo.todo.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import springboot_todo.todo.dto.ApiResponse;
+import springboot_todo.todo.dto.GetAllTodosDto;
 import springboot_todo.todo.entity.TodoEntity;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.enums.RoleEnum;
-import springboot_todo.todo.exception.CustomException;
 import springboot_todo.todo.security.AllowedRoles;
 import springboot_todo.todo.service.TodoService;
 
@@ -37,22 +36,24 @@ public class TodoController {
             @AuthenticationPrincipal UserEntity user) {
         try {
             UUID userId = user.getId();
-            TodoEntity newTodo = todoService.createTodo(data, userId);
-            System.out.print(newTodo);
+            TodoEntity newTodo = this.todoService.createTodo(data, userId);
             return ResponseEntity.ok(new ApiResponse<>(true, "Todo created successfully", newTodo));
         } catch (Exception e) {
-            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw e;
         }
     }
 
     @AllowedRoles(value = { RoleEnum.USER })
     @GetMapping()
-    public ResponseEntity<ApiResponse<List<TodoEntity>>> getAllTodos() {
+    public ResponseEntity<ApiResponse<List<TodoEntity>>> getAllTodos(
+            @RequestBody GetAllTodosDto input,
+            @AuthenticationPrincipal UserEntity user) {
         try {
-            List<TodoEntity> allTodos = this.todoService.getAllTodos();
+            UUID userId = user.getId();
+            List<TodoEntity> allTodos = this.todoService.getAllTodos(input, userId);
             return ResponseEntity.ok(new ApiResponse<>(true, "All Todos", allTodos));
         } catch (Exception e) {
-            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw e;
         }
     }
 
@@ -60,22 +61,39 @@ public class TodoController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TodoEntity>> getTodoById(@PathVariable UUID id) {
         try {
-            TodoEntity todo = todoService.getTodoById(id);
+            TodoEntity todo = this.todoService.getTodoById(id);
             return ResponseEntity.ok(new ApiResponse<>(true, "Todo fetched", todo));
         } catch (Exception e) {
-            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw e;
         }
     }
 
     @AllowedRoles(value = { RoleEnum.USER })
     @PutMapping("/update")
-    public ResponseEntity<ApiResponse<TodoEntity>> updateTodo(@RequestBody TodoEntity data) {
+    public ResponseEntity<ApiResponse<TodoEntity>> updateTodo(
+            @RequestBody TodoEntity data,
+            @AuthenticationPrincipal UserEntity user) {
         try {
+            UUID userId = user.getId();
             UUID todoId = data.getId();
-            TodoEntity todo = todoService.updateTodo(todoId, data);
+            TodoEntity todo = this.todoService.updateTodo(todoId, data, userId);
             return ResponseEntity.ok(new ApiResponse<>(true, "Todo updated", todo));
         } catch (Exception e) {
-            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw e;
+        }
+    }
+
+    @AllowedRoles(value = { RoleEnum.USER })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> deleteTodo(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserEntity user) {
+        try {
+            UUID userId = user.getId();
+            String message = this.todoService.deleteTodo(id, userId);
+            return ResponseEntity.ok(new ApiResponse<>(false, message, null));
+        } catch (Exception e) {
+            throw e;
         }
     }
 }

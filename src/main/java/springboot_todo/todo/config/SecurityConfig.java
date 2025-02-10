@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import lombok.AllArgsConstructor;
 import springboot_todo.todo.middleware.JwtMiddleware;
 
-
 @AllArgsConstructor
 @Configuration
 @EnableAspectJAutoProxy
@@ -31,17 +30,17 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/update-status").authenticated()
-                        .requestMatchers("/api/users/*").permitAll()
-                        .anyRequest().authenticated()
-                        
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/users/**", "/api/todos/**").authenticated()
+
                 ).addFilterBefore(jwtMiddleware, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

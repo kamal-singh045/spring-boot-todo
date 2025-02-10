@@ -38,6 +38,14 @@ public class JwtMiddleware extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
+            // ✅ Skip JWT validation for public routes
+            String path = request.getServletPath();
+            if (path.startsWith("/api/auth/")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // ✅ Get Authorization header & validate
             final String authHeader = request.getHeader("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 throw new CustomException("Missing or invalid Authorization header", HttpStatus.UNAUTHORIZED);
@@ -61,8 +69,6 @@ public class JwtMiddleware extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
             filterChain.doFilter(request, response);
-        } catch (CustomException e) {
-            response.sendError(e.getStatus().value(), e.getMessage());
         } catch (Exception e) {
             this.handlerExceptionResolver.resolveException(request, response, null, e);
         }
