@@ -1,10 +1,15 @@
 package springboot_todo.todo.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import springboot_todo.todo.dto.ApiResponse;
 import springboot_todo.todo.dto.GetAllTodosDto;
+import springboot_todo.todo.dto.PaginationResponse;
 import springboot_todo.todo.entity.TodoEntity;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.exception.CustomException;
@@ -36,9 +41,13 @@ public class TodoService {
         return this.todoRepository.save(data);
     }
 
-    public List<TodoEntity> getAllTodos(GetAllTodosDto input, UUID userId) {
+    public ApiResponse<List<TodoEntity>> getAllTodos(GetAllTodosDto input, int page, int limit, UUID userId) {
         Specification<TodoEntity> spec = TodoSpecification.filtersTodos(input, userId);
-        return this.todoRepository.findAll(spec);
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<TodoEntity> todos = this.todoRepository.findAll(spec, pageable);
+        PaginationResponse paginationResponse = new PaginationResponse(todos.getNumber(), todos.getTotalPages(),
+                todos.getNumberOfElements(), todos.getTotalElements());
+        return new ApiResponse<List<TodoEntity>>(true, "Todos with pagination", todos.getContent(), paginationResponse);
     }
 
     public TodoEntity getTodoById(UUID id) {

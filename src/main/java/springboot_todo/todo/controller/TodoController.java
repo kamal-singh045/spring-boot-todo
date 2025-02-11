@@ -9,14 +9,12 @@ import springboot_todo.todo.dto.GetAllTodosDto;
 import springboot_todo.todo.entity.TodoEntity;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.enums.RoleEnum;
+import springboot_todo.todo.enums.TodoStatusEnum;
 import springboot_todo.todo.security.AllowedRoles;
 import springboot_todo.todo.service.TodoService;
 
 import java.util.List;
 import java.util.UUID;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/todos")
@@ -46,12 +44,16 @@ public class TodoController {
     @AllowedRoles(value = { RoleEnum.USER })
     @GetMapping()
     public ResponseEntity<ApiResponse<List<TodoEntity>>> getAllTodos(
-            @RequestBody GetAllTodosDto input,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int limit,
+            @RequestParam(required = false) TodoStatusEnum status,
+            @RequestParam(required = false) String searchString,
             @AuthenticationPrincipal UserEntity user) {
         try {
             UUID userId = user.getId();
-            List<TodoEntity> allTodos = this.todoService.getAllTodos(input, userId);
-            return ResponseEntity.ok(new ApiResponse<>(true, "All Todos", allTodos));
+            GetAllTodosDto input = new GetAllTodosDto(status, searchString);
+            ApiResponse<List<TodoEntity>> allTodos = this.todoService.getAllTodos(input, page, limit, userId);
+            return ResponseEntity.ok(allTodos);
         } catch (Exception e) {
             throw e;
         }
