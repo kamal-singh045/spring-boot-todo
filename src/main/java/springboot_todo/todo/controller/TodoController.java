@@ -12,6 +12,7 @@ import springboot_todo.todo.enums.RoleEnum;
 import springboot_todo.todo.enums.TodoStatusEnum;
 import springboot_todo.todo.security.AllowedRoles;
 import springboot_todo.todo.service.TodoService;
+import springboot_todo.todo.utils.Constants;
 
 import java.util.List;
 import java.util.UUID;
@@ -44,8 +45,8 @@ public class TodoController {
     @AllowedRoles(value = { RoleEnum.USER })
     @GetMapping()
     public ResponseEntity<ApiResponse<List<TodoEntity>>> getAllTodos(
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int limit,
+            @RequestParam(required = false, defaultValue = Constants.Pagination.DEFAULT_PAGE) int page,
+            @RequestParam(required = false, defaultValue = Constants.Pagination.DEFAULT_LIMIT) int limit,
             @RequestParam(required = false) TodoStatusEnum status,
             @RequestParam(required = false) String searchString,
             @AuthenticationPrincipal UserEntity user) {

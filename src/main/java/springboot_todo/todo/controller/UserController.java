@@ -18,6 +18,7 @@ import springboot_todo.todo.enums.UserStatusEnum;
 import springboot_todo.todo.exception.CustomException;
 import springboot_todo.todo.security.AllowedRoles;
 import springboot_todo.todo.service.UserService;
+import springboot_todo.todo.utils.Constants;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -46,8 +47,8 @@ public class UserController {
     @AllowedRoles(value = { RoleEnum.ADMIN })
     @GetMapping
     public ResponseEntity<ApiResponse<List<GetAllUsersResponse>>> getAllUsers(
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int limit,
+            @RequestParam(required = false, defaultValue = Constants.Pagination.DEFAULT_PAGE) int page,
+            @RequestParam(required = false, defaultValue = Constants.Pagination.DEFAULT_PAGE) int limit,
             @RequestParam(required = false) UserStatusEnum status,
             @RequestParam(required = false) String searchString) {
         try {
