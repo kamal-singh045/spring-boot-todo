@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import springboot_todo.todo.dto.ApiResponse;
@@ -13,6 +14,7 @@ import springboot_todo.todo.dto.GetAllUsersDto;
 import springboot_todo.todo.dto.GetAllUsersResponse;
 import springboot_todo.todo.dto.UpdateUserStatusDto;
 import springboot_todo.todo.enums.RoleEnum;
+import springboot_todo.todo.enums.UserStatusEnum;
 import springboot_todo.todo.exception.CustomException;
 import springboot_todo.todo.security.AllowedRoles;
 import springboot_todo.todo.service.UserService;
@@ -43,10 +45,15 @@ public class UserController {
 
     @AllowedRoles(value = { RoleEnum.ADMIN })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<GetAllUsersResponse>>> getAllUsers(@RequestBody GetAllUsersDto input) {
+    public ResponseEntity<ApiResponse<List<GetAllUsersResponse>>> getAllUsers(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int limit,
+            @RequestParam(required = false) UserStatusEnum status,
+            @RequestParam(required = false) String searchString) {
         try {
-            List<GetAllUsersResponse> usersList = this.userService.getAllUsers(input);
-            return ResponseEntity.ok(new ApiResponse<>(true, "All Users", usersList));
+            GetAllUsersDto input = new GetAllUsersDto(status, searchString);
+            ApiResponse<List<GetAllUsersResponse>> usersList = this.userService.getAllUsers(input, page, limit);
+            return ResponseEntity.ok(usersList);
         } catch (Exception e) {
             throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -45,9 +45,10 @@ public class TodoService {
         Specification<TodoEntity> spec = TodoSpecification.filtersTodos(input, userId);
         Pageable pageable = PageRequest.of(page, limit);
         Page<TodoEntity> todos = this.todoRepository.findAll(spec, pageable);
+
         PaginationResponse paginationResponse = new PaginationResponse(todos.getNumber(), todos.getTotalPages(),
                 todos.getNumberOfElements(), todos.getTotalElements());
-        return new ApiResponse<List<TodoEntity>>(true, "Todos with pagination", todos.getContent(), paginationResponse);
+        return new ApiResponse<>(true, "Todos with pagination", todos.getContent(), paginationResponse);
     }
 
     public TodoEntity getTodoById(UUID id) {

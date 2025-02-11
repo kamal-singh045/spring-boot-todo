@@ -4,14 +4,19 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import springboot_todo.todo.dto.ApiResponse;
 import springboot_todo.todo.dto.GetAllUsersDto;
 import springboot_todo.todo.dto.GetAllUsersResponse;
 import springboot_todo.todo.dto.LoginDto;
+import springboot_todo.todo.dto.PaginationResponse;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.enums.UserStatusEnum;
 import springboot_todo.todo.exception.CustomException;
@@ -81,11 +86,17 @@ public class UserService {
         return "User status updated to " + status;
     }
 
-    public List<GetAllUsersResponse> getAllUsers(GetAllUsersDto input) {
+    public ApiResponse<List<GetAllUsersResponse>> getAllUsers(GetAllUsersDto input, int page, int limit) {
         Specification<UserEntity> spec = UserSpecification.filtersUsers(input);
-        List<UserEntity> users = this.userRepository.findAll(spec);
-        return users.stream()
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<UserEntity> users = this.userRepository.findAll(spec, pageable);
+        PaginationResponse paginationResponse = new PaginationResponse(users.getNumber(), users.getTotalPages(),
+                users.getNumberOfElements(), users.getTotalElements());
+
+        List<GetAllUsersResponse> allUsers = users.getContent().stream()
                 .map(user -> new GetAllUsersResponse(user.getId(), user.getName(), user.getEmail(), user.getStatus()))
                 .collect(Collectors.toList());
+
+        return new ApiResponse<>(true, "Users with pagination", allUsers, paginationResponse);
     }
 }
