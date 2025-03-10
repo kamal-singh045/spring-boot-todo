@@ -13,10 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import springboot_todo.todo.dto.ApiResponse;
-import springboot_todo.todo.dto.GetAllUsersDto;
-import springboot_todo.todo.dto.GetAllUsersResponse;
 import springboot_todo.todo.dto.LoginDto;
 import springboot_todo.todo.dto.PaginationResponse;
+import springboot_todo.todo.dto.UserResponse;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.enums.UserStatusEnum;
 import springboot_todo.todo.exception.CustomException;
@@ -86,17 +85,26 @@ public class UserService {
         return "User status updated to " + status;
     }
 
-    public ApiResponse<List<GetAllUsersResponse>> getAllUsers(GetAllUsersDto input, int page, int limit) {
-        Specification<UserEntity> spec = UserSpecification.filtersUsers(input);
+    public ApiResponse<List<UserResponse>> getAllUsers(UserStatusEnum status, String searchString, int page,
+            int limit) {
+        Specification<UserEntity> spec = UserSpecification.filtersUsers(status, searchString);
         Pageable pageable = PageRequest.of(page, limit);
         Page<UserEntity> users = this.userRepository.findAll(spec, pageable);
         PaginationResponse paginationResponse = new PaginationResponse(users.getNumber(), users.getTotalPages(),
                 users.getNumberOfElements(), users.getTotalElements());
 
-        List<GetAllUsersResponse> allUsers = users.getContent().stream()
-                .map(user -> new GetAllUsersResponse(user.getId(), user.getName(), user.getEmail(), user.getStatus()))
+        List<UserResponse> allUsers = users.getContent().stream()
+                .map(user -> new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getStatus()))
                 .collect(Collectors.toList());
 
         return new ApiResponse<>(true, "Users with pagination", allUsers, paginationResponse);
+    }
+
+    public UserResponse getUserById(UUID userId) {
+        UserEntity user = this.userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            throw new CustomException("User not found", HttpStatus.NOT_FOUND);
+        }
+        return new UserResponse(userId, user.getName(), user.getEmail(), user.getStatus());
     }
 }

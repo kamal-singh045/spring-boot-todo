@@ -1,15 +1,16 @@
 package springboot_todo.todo.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import springboot_todo.todo.dto.ApiResponse;
-import springboot_todo.todo.dto.GetAllTodosDto;
 import springboot_todo.todo.entity.TodoEntity;
 import springboot_todo.todo.entity.UserEntity;
 import springboot_todo.todo.enums.RoleEnum;
 import springboot_todo.todo.enums.TodoStatusEnum;
+import springboot_todo.todo.exception.CustomException;
 import springboot_todo.todo.security.AllowedRoles;
 import springboot_todo.todo.service.TodoService;
 import springboot_todo.todo.utils.Constants;
@@ -38,7 +39,7 @@ public class TodoController {
             TodoEntity newTodo = this.todoService.createTodo(data, userId);
             return ResponseEntity.ok(new ApiResponse<>(true, "Todo created successfully", newTodo));
         } catch (Exception e) {
-            throw e;
+            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -52,11 +53,11 @@ public class TodoController {
             @AuthenticationPrincipal UserEntity user) {
         try {
             UUID userId = user.getId();
-            GetAllTodosDto input = new GetAllTodosDto(status, searchString);
-            ApiResponse<List<TodoEntity>> allTodos = this.todoService.getAllTodos(input, page, limit, userId);
+            ApiResponse<List<TodoEntity>> allTodos = this.todoService.getAllTodos(status, searchString, page, limit,
+                    userId);
             return ResponseEntity.ok(allTodos);
         } catch (Exception e) {
-            throw e;
+            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -67,7 +68,7 @@ public class TodoController {
             TodoEntity todo = this.todoService.getTodoById(id);
             return ResponseEntity.ok(new ApiResponse<>(true, "Todo fetched", todo));
         } catch (Exception e) {
-            throw e;
+            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -82,21 +83,21 @@ public class TodoController {
             TodoEntity todo = this.todoService.updateTodo(todoId, data, userId);
             return ResponseEntity.ok(new ApiResponse<>(true, "Todo updated", todo));
         } catch (Exception e) {
-            throw e;
+            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @AllowedRoles(value = { RoleEnum.USER })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> deleteTodo(
+    public ResponseEntity<ApiResponse<Object>> deleteTodo(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserEntity user) {
         try {
             UUID userId = user.getId();
             String message = this.todoService.deleteTodo(id, userId);
-            return ResponseEntity.ok(new ApiResponse<>(false, message, null));
+            return ResponseEntity.ok(new ApiResponse<>(false, message));
         } catch (Exception e) {
-            throw e;
+            throw new CustomException(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

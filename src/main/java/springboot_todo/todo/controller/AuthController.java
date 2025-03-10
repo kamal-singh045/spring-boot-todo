@@ -26,7 +26,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/register")
-	public ResponseEntity<ApiResponse<?>> register(@RequestBody UserEntity userData) {
+	public ResponseEntity<ApiResponse<String>> register(@RequestBody UserEntity userData) {
 		try {
 			String token = this.userService.register(userData);
 			return ResponseEntity.ok(new ApiResponse<>(true, "Registration Successful", token));
@@ -36,7 +36,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/register-admin")
-	public ResponseEntity<ApiResponse<?>> registerAdmin(@RequestBody UserEntity userData) {
+	public ResponseEntity<ApiResponse<String>> registerAdmin(@RequestBody UserEntity userData) {
 		try {
 			userData.setRole(RoleEnum.ADMIN);
 			userData.setStatus(UserStatusEnum.ACTIVE);
@@ -48,7 +48,7 @@ public class AuthController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginDto loginData) {
+	public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginDto loginData) {
 		try {
 			String token = this.userService.login(loginData);
 			return ResponseEntity.ok(new ApiResponse<>(true, "Login Successful", token));

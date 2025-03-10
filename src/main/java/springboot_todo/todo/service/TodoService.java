@@ -8,10 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import springboot_todo.todo.dto.ApiResponse;
-import springboot_todo.todo.dto.GetAllTodosDto;
 import springboot_todo.todo.dto.PaginationResponse;
 import springboot_todo.todo.entity.TodoEntity;
 import springboot_todo.todo.entity.UserEntity;
+import springboot_todo.todo.enums.TodoStatusEnum;
 import springboot_todo.todo.exception.CustomException;
 import springboot_todo.todo.repository.TodoRepository;
 import springboot_todo.todo.repository.UserRepository;
@@ -41,8 +41,9 @@ public class TodoService {
         return this.todoRepository.save(data);
     }
 
-    public ApiResponse<List<TodoEntity>> getAllTodos(GetAllTodosDto input, int page, int limit, UUID userId) {
-        Specification<TodoEntity> spec = TodoSpecification.filtersTodos(input, userId);
+    public ApiResponse<List<TodoEntity>> getAllTodos(TodoStatusEnum status, String searchString, int page, int limit,
+            UUID userId) {
+        Specification<TodoEntity> spec = TodoSpecification.filtersTodos(status, searchString, userId);
         Pageable pageable = PageRequest.of(page, limit);
         Page<TodoEntity> todos = this.todoRepository.findAll(spec, pageable);
 

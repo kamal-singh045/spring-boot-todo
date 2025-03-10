@@ -10,7 +10,7 @@ import springboot_todo.todo.enums.UserStatusEnum;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetAllUsersResponse {
+public class UserResponse {
 	private UUID id;
 	private String name;
 	private String email;

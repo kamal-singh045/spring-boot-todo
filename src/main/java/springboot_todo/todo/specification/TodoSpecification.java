@@ -4,21 +4,24 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import springboot_todo.todo.dto.GetAllTodosDto;
 import springboot_todo.todo.entity.TodoEntity;
+import springboot_todo.todo.enums.TodoStatusEnum;
 
 public class TodoSpecification {
-	public static Specification<TodoEntity> filtersTodos(GetAllTodosDto input, UUID userId) {
+	private TodoSpecification() {
+	}
+
+	public static Specification<TodoEntity> filtersTodos(TodoStatusEnum status, String searchString, UUID userId) {
 		return (root, query, criticalBuilder) -> {
 			Specification<TodoEntity> spec = Specification.where(null);
 			spec = spec.and((r, q, cb) -> cb.equal(r.get("user").get("id"), userId));
-			if (input.getStatus() != null) {
-				spec = spec.and((r, q, cb) -> cb.equal(r.get("status"), input.getStatus()));
+			if (status != null) {
+				spec = spec.and((r, q, cb) -> cb.equal(r.get("status"), status));
 			}
-			if (input.getSearchString() != null && !input.getSearchString().isEmpty()) {
+			if (searchString != null && !searchString.isEmpty()) {
 				spec = spec.and((r, q, cb) -> cb.or(
-						cb.like(cb.lower(r.get("title")), "%" + input.getSearchString().toLowerCase() + "%"),
-						cb.like(cb.lower(r.get("description")), "%" + input.getSearchString().toLowerCase() + "%")));
+						cb.like(cb.lower(r.get("title")), "%" + searchString.toLowerCase() + "%"),
+						cb.like(cb.lower(r.get("description")), "%" + searchString.toLowerCase() + "%")));
 			}
 			return spec.toPredicate(root, query, criticalBuilder);
 		};
